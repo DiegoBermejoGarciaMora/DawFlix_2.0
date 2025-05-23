@@ -1,11 +1,14 @@
-import java.io.IOException;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 import DAO.ContenidoDAO;
+import DAO.EstadisticasDAO;
 import Exceptions.FavoritoDuplicadoExcepcion;
 import Model.ComparatorByName;
 import Model.Contenido.Contenido;
@@ -16,8 +19,6 @@ import Model.Contenido.Musica;
 import Model.Contenido.Pelicula;
 import Model.Contenido.Serie;
 import Model.Usuarios.Usuario;
-import Util.GestionarFavoritos;
-import Util.GestionarRecientes;
 
 public class DAWFlix {
     // Registrar reproducciones
@@ -25,7 +26,7 @@ public class DAWFlix {
 
     // DAO
     static ContenidoDAO dao = new ContenidoDAO();
-    public static List<Contenido> contenidos = dao.selectContenidos();
+    public static TreeMap<Contenido, String> contenidos = dao.selectContenidos();
     public static List<Usuario> usuarios = dao.selectUsuarios();
 
     // Variables bucles menus
@@ -49,6 +50,11 @@ public class DAWFlix {
     public static Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) throws Exception {
+        TreeMap<String, Integer> conteo = EstadisticasDAO.obtenerConteoReproducciones();
+
+        conteo.forEach((usuario, veces) -> 
+            System.out.println(usuario + " ha reproducido " + veces + " veces")
+        );
         login();
         menuPrincipal();
     }
@@ -174,6 +180,7 @@ public class DAWFlix {
             System.out.println("1. Mostrar Todos Los Contenidos");
             System.out.println("2. Seleccionar Contenido");
             System.out.println("3. Visualizar Cuenta");
+            System.out.println("4. Ver cantidad de reproducciones por usuario");
             System.out.println("--------------------------------");
             System.out.println("0. Cerrar Sesion");
             System.out.println("");
@@ -192,7 +199,8 @@ public class DAWFlix {
                 case "3":
                     mostrarDetallesCuenta();
                     break;
-                case "0":
+                case "4":
+                    mostrarConteoReproducciones();
                     break;
                 default:
                     System.out.println("[ERROR] OPCION NO VALIDA");
@@ -203,23 +211,24 @@ public class DAWFlix {
 
     public static void mostrarContenidos() {
         System.out.println("");
-        Collections.sort(contenidos, new ComparatorByName());
+        List<Contenido> listaContenidos = new ArrayList<>(contenidos.keySet());
+Collections.sort(listaContenidos, new ComparatorByName());
         System.out.println(ANSI_RED + "Peliculas" + ANSI_RESET);
-        for (Contenido contenido : contenidos) {
+        for (Contenido contenido : listaContenidos) {
             if (contenido instanceof Pelicula) {
                 System.out.println(contenido.toString());
             }
         }
 
         System.out.println(ANSI_RED + "Series" + ANSI_RESET);
-        for (Contenido contenido : contenidos) {
+        for (Contenido contenido : listaContenidos) {
             if (contenido instanceof Serie) {
                 System.out.println(contenido.toString());
             }
         }
 
         System.out.println(ANSI_RED + "Canciones" + ANSI_RESET);
-        for (Contenido contenido : contenidos) {
+        for (Contenido contenido : listaContenidos) {
             if (contenido instanceof Musica) {
                 System.out.println(contenido.toString());
             }
@@ -233,7 +242,10 @@ public class DAWFlix {
         System.out.println("");
         System.out.print("Titulo: ");
         titulo = sc.nextLine().toLowerCase();
-        for (Contenido contenido : contenidos) {
+
+        List<Contenido> listaContenidos = new ArrayList<>(dao.selectContenidos().keySet());
+        
+        for (Contenido contenido : listaContenidos) {
             if (contenido.getTitulo().toLowerCase().equals(titulo)) {
                 contenidoSeleccionado = contenido;
                 contenidoEncontrado = true;
@@ -271,21 +283,10 @@ public class DAWFlix {
                         usuarioLogeado.añadirRecientes(contenidoSeleccionado);
                     }
 
-                    try {
-                        GestionarRecientes.guardarReciente(usuarioLogeado.getRecientes());
-                    } catch (IOException e) {
-                        e.getMessage();
-                    }
-
                     break;
 
                 case "2":
                     usuarioLogeado.añadirFavorito(contenidoSeleccionado);
-                    try {
-                        GestionarFavoritos.guardarFavorito(usuarioLogeado.getFavoritos());
-                    } catch (IOException e) {
-                        System.out.println(e.getMessage());
-                    }
                     break;
 
                 case "3":
@@ -303,11 +304,21 @@ public class DAWFlix {
         System.out.println("");
         System.out.println("Usuario: " + usuarioLogeado.getNombre());
         System.out.println("Email: " + usuarioLogeado.getEmail());
-        // usuarioLogeado.mostrarFavoritos();
-        GestionarFavoritos.mostrarFavoritos();
-        // usuarioLogeado.mostrarRecientes();
-        GestionarRecientes.mostrarRecientes();
-
+        usuarioLogeado.mostrarFavoritos();
+        usuarioLogeado.mostrarRecientes();
         System.out.println("Suscricpcion: " + usuarioLogeado.getSuscripcion());
     }
+
+    public static void mostrarConteoReproducciones() {
+        TreeMap<String, Integer> conteo = EstadisticasDAO.obtenerConteoReproducciones();
+
+        System.out.printf("%-10s | %s%n", "Usuario", "Veces Reproducido");
+        System.out.println("-----------------------------");
+
+        for (Map.Entry<String, Integer> entry : conteo.entrySet()) {
+            System.out.printf("%-10s | %d%n", entry.getKey(), entry.getValue());
+        }
+    }
+
+    
 }

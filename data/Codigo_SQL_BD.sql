@@ -1,6 +1,7 @@
 -- SQLite
 DROP TABLE IF EXISTS contenidos;
 DROP TABLE IF EXISTS usuarios;
+DROP TABLE IF EXISTS reproducciones;
 
 CREATE TABLE contenidos(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,6 +23,15 @@ CREATE TABLE usuarios(
     email TEXT NOT NULL,
     contraseña TEXT NOT NULL,
     suscripcion TEXT NOT NULL
+);
+
+CREATE TABLE reproducciones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_usuario INTEGER,
+    id_contenido INTEGER,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id),
+    FOREIGN KEY (id_contenido) REFERENCES contenidos(id)
 );
 
 -- ||||||| CONTENIDOS ||||||| 
@@ -82,3 +92,11 @@ VALUES ('user2', 'user2', 'user2', 'PREMIUM');
 
 INSERT INTO usuarios (nombre, email, contraseña, suscripcion) 
 VALUES ('a', 'a', 'a', 'PREMIUM_PLUS');
+
+-- SUBCONSULTA
+SELECT nombre AS usuario, titulo AS contenido, COUNT(*) AS veces_reproducido
+FROM reproducciones
+JOIN usuarios ON id_usuario = id
+JOIN contenidos c ON id_contenido = id
+GROUP BY id, id
+ORDER BY nombre, veces_reproducido DESC;

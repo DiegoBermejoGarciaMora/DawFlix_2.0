@@ -4,7 +4,7 @@ import Interface.Reproducible;
 import Model.Contenido.Generos.Genero;
 import Model.Contenido.Generos.GeneroMusica;
 
-public abstract class Contenido implements Reproducible {
+public abstract class Contenido implements Reproducible, Comparable<Contenido> {
     String titulo, descripcion;
     int puntuacion;
     Genero genero;
@@ -106,4 +106,11 @@ public abstract class Contenido implements Reproducible {
         return "Contenido " + titulo + ", descripcion: " + descripcion + ", puntuacion:" + puntuacion
                 + ", genero:" + genero;
     }
+
+    @Override
+public int compareTo(Contenido otro) {
+    return this.titulo.compareToIgnoreCase(otro.titulo);
+    }
+
+    
 }
