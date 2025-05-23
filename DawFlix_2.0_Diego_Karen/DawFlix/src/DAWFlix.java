@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,8 @@ import Model.Contenido.Musica;
 import Model.Contenido.Pelicula;
 import Model.Contenido.Serie;
 import Model.Usuarios.Usuario;
+import Util.GestionarFavoritos;
+import Util.GestionarRecientes;
 
 public class DAWFlix {
     // Registrar reproducciones
@@ -189,6 +192,8 @@ public class DAWFlix {
                 case "3":
                     mostrarDetallesCuenta();
                     break;
+                case "0":
+                    break;
                 default:
                     System.out.println("[ERROR] OPCION NO VALIDA");
                     break;
@@ -266,10 +271,21 @@ public class DAWFlix {
                         usuarioLogeado.añadirRecientes(contenidoSeleccionado);
                     }
 
+                    try {
+                        GestionarRecientes.guardarReciente(usuarioLogeado.getRecientes());
+                    } catch (IOException e) {
+                        e.getMessage();
+                    }
+
                     break;
 
                 case "2":
                     usuarioLogeado.añadirFavorito(contenidoSeleccionado);
+                    try {
+                        GestionarFavoritos.guardarFavorito(usuarioLogeado.getFavoritos());
+                    } catch (IOException e) {
+                        System.out.println(e.getMessage());
+                    }
                     break;
 
                 case "3":
@@ -287,8 +303,10 @@ public class DAWFlix {
         System.out.println("");
         System.out.println("Usuario: " + usuarioLogeado.getNombre());
         System.out.println("Email: " + usuarioLogeado.getEmail());
-        usuarioLogeado.mostrarFavoritos();
-        usuarioLogeado.mostrarRecientes();
+        // usuarioLogeado.mostrarFavoritos();
+        GestionarFavoritos.mostrarFavoritos();
+        // usuarioLogeado.mostrarRecientes();
+
         System.out.println("Suscricpcion: " + usuarioLogeado.getSuscripcion());
     }
 }
